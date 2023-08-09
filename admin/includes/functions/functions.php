@@ -73,89 +73,7 @@ class Connection
 
 class User extends Connection
 {
-    private $registration_errors = array();
     private $login_errors = array();
-
-    public function register($full_name, $username, $email, $password, $confirm_password)
-    {
-
-        $filter_full_name = filter_var($full_name, FILTER_SANITIZE_SPECIAL_CHARS);
-        $filter_username = filter_var($username, FILTER_SANITIZE_SPECIAL_CHARS);
-        $username_without_spaces = str_replace(" ", "", $filter_username);
-        $filter_email = filter_var($email, FILTER_SANITIZE_EMAIL);
-        $filter_valid_email = filter_var($filter_email, FILTER_VALIDATE_EMAIL);
-
-        if (empty($filter_full_name)) {
-            $this->registration_errors[] = "Full name is required";
-        }
-
-        if (strlen($filter_full_name) < 4 && !empty($filter_full_name)) {
-            $this->registration_errors[] = "Full name must be larger than 4 characters";
-        }
-
-        if (empty($username_without_spaces)) {
-            $this->registration_errors[] = "Username is required";
-        }
-
-        if (strlen($username_without_spaces) < 4 && !empty($username_without_spaces)) {
-            $this->registration_errors[] = "Username must be larger than 4 characters";
-        }
-
-        if (empty($filter_email)) {
-            $this->registration_errors[] = "Email is required";
-        }
-
-        if (filter_var($filter_email, FILTER_VALIDATE_EMAIL) == false && !empty($filter_email)) {
-            $this->registration_errors[] = "Email not valid";
-        }
-
-        if (empty($password)) {
-            $this->registration_errors[] = "Password is required";
-        }
-
-        if (strlen($password) < 4 && !empty($password)) {
-            $this->registration_errors[] = "Password must be larger than 4 characters";
-        }
-
-        if ($password != $confirm_password && !empty($password) && strlen($password) >= 4) {
-            $this->registration_errors[] = "Password not match!";
-        }
-
-        if (empty($this->registration_errors)) {
-
-            $hash_password = password_hash($password, PASSWORD_DEFAULT);
-
-            $stmt = $this->conn->prepare("SELECT username, email FROM users WHERE username = ? OR email = ?");
-            $stmt->execute(array($username_without_spaces, $filter_valid_email));
-            $result = $stmt->fetchAll();
-            // $result = $this->fetch_data("username, email", "users", "username", $username_without_spaces,
-            //                             "OR", "email", $filter_valid_email);
-
-            if (empty($result)) {
-                $stmt = $this->conn->prepare("INSERT INTO users(full_name, username, email, reg_time, pass) VALUES(?,?,?, NOW(), ?)");
-                $stmt->execute(array($filter_full_name, $username_without_spaces, $filter_valid_email, $hash_password));
-                if ($stmt->rowCount() > 0) {
-                    header("location: login.php");
-                    exit();
-                } else {
-                    $this->registration_errors[] = "Error, please try again!";
-                    return $this->registration_errors;
-                }
-            } else {
-                foreach ($result as $res) {
-                    if ($res['email'] == $filter_valid_email) {
-                        $this->registration_errors[] = "This Email Already Exist";
-                    } elseif ($res['username'] == $username_without_spaces) {
-                        $this->registration_errors[] = "This Username Already Exist";
-                    }
-                }
-                return $this->registration_errors;
-            }
-        } else {
-            return $this->registration_errors;
-        }
-
-    }
 
     public function login($username, $password)
     {
@@ -163,19 +81,19 @@ class User extends Connection
         $username_without_space = str_replace(' ', '', $filter_username);
 
         if (empty($username_without_space)) {
-            $this->login_errors[] = "Username is required";
+            $this->login_errors[] = "<div class='alert alert-danger'>Username is required</div>";
         }
 
         if (strlen($username_without_space) < 4 && !empty($username_without_space)) {
-            $this->login_errors[] = "Username must be larger than 4 characters";
+            $this->login_errors[] = "<div class='alert alert-danger'>Username must be larger than 4 characters</div>";
         }
 
         if (empty($password)) {
-            $this->login_errors[] = "Password is required";
+            $this->login_errors[] = "<div class='alert alert-danger'>Password is required</div>";
         }
 
         if (strlen($password) < 4 && !empty($password)) {
-            $this->login_errors[] = "Password must be larger than 4 characters";
+            $this->login_errors[] = "<div class='alert alert-danger'>Password must be larger than 4 characters</div>";
         }
 
         if (empty($this->login_errors)) {
@@ -183,19 +101,19 @@ class User extends Connection
             $result = $this->fetch_data("user_id, pass, group_id", "users", "username", $username_without_space);
 
             if (empty($result)) {
-                $this->login_errors[] = "Wrong Username Or Password!";
+                $this->login_errors[] = "<div class='alert alert-danger'>Wrong Username Or Password!</div>";
                 return $this->login_errors;
             } else {
                 if (!password_verify($password, $result['pass'])) {
-                    $this->login_errors[] = "Password not true";
+                    $this->login_errors[] = "<div class='alert alert-danger'>Password not true</div>";
                     return $this->login_errors;
                 } else {
                     if ($result['group_id'] == 0) {
-                        $this->login_errors[] = "You are not Admin!";
+                        $this->login_errors[] = "<div class='alert alert-danger'>You are not Admin!</div>";
                         return $this->login_errors;
                     } else {
                         $_SESSION['admin'] = $username_without_space;
-                        $_SESSION['user_id'] = $result['user_id'];
+                        $_SESSION['admin_id'] = $result['user_id'];
                         header("location: dashboard.php");
                         exit();
                     }
