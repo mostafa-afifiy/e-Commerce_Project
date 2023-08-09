@@ -32,6 +32,8 @@ include 'init.php';
 		<input class="btn btn-primary btn-block" name="login" type="submit" value="Login" />
 	</form>
 	<!-- End Login Form -->
+
+	
 	<!-- Start Signup Form -->
 	<form class="signup" action="" method="POST">
 		<div class="input-container">

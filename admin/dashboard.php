@@ -17,8 +17,8 @@ if(isset($_SESSION['admin'])) {
 						Total Members
 						<span>
 							<?php
-								$count = new Database();
-								$all_members = $count->get_all("count(user_id) as all_users", "users");
+								$count = new Connection();
+								$all_members = $count->fetch_data("count(user_id) as all_users", "users");
 								?>
 								<a href="members.php"><?= isset($all_members) ? $all_members['all_users'] : "0";?></a>
 						</span>
@@ -32,7 +32,7 @@ if(isset($_SESSION['admin'])) {
 						Pending Members
 						<span>
 							<?php 
-								$pending = $count->get_all("count(user_id) as all_pending", "users", "reg_status = 0");
+								$pending = $count->fetch_data("count(user_id) as all_pending", "users", "reg_status", "0");
 							?>
 							<a href="#"><?= isset($pending) ? $pending['all_pending'] : "0";?></a>
 						</span>
@@ -46,8 +46,7 @@ if(isset($_SESSION['admin'])) {
 						Total Items
 						<span>
 							<?php
-								$all_items = new Item();
-								$count_items = $all_items->get_item("count(item_id) as all_items", "approve", "1");
+								$count_items = $count->fetch_data("count(item_id) as all_items", "items", "approve", "1");
 							?>
 							<a href="items.php"><?= isset($count_items) ? $count_items['all_items'] : '';?></a>
 						</span>
@@ -76,7 +75,7 @@ if(isset($_SESSION['admin'])) {
 				<div class="panel panel-default">
 					<div class="panel-heading">
 						<i class="fa fa-users"></i> 
-						Latest Registerd Users 
+						Latest Registered Users 
 						<span class="toggle-info pull-right">
 							<i class="fa fa-plus fa-lg"></i>
 						</span>
