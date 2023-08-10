@@ -1,4 +1,5 @@
 <?php
+ob_start(); // Output Buffering Start
 session_start();
 $title = "Login";
 $no_navbar = "";
@@ -34,4 +35,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
 	?>
 </div>
 
-<?php include $tpl . 'footer.php'; ?>
+<?php 
+	include $tpl . 'footer.php'; 
+	ob_end_flush();
+?>

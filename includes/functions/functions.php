@@ -35,34 +35,34 @@ class Connection
         echo 'And You Can\'t Assign This Value [ ' . $val . ' ] To It<br>';
     }
 
-    public function fetch_data($filed, $table, $where = NULL, $value = NULL, $order = NULL, $all = NULL)
+    public function fetch_data($filed, $table, $where = NULL, $value = NULL, $order = NULL, $limit = NULL, $all = NULL)
     {
         if($value == NULL) {
             
             if($all == NULL) {
 
-                $stmt = $this->conn->prepare("SELECT $filed FROM $table $order");
+                $stmt = $this->conn->prepare("SELECT $filed FROM $table $order $limit");
                 $stmt->execute();
                 return $stmt->fetch();
 
             }
             elseif($all == "fetchAll") {
 
-                $stmt = $this->conn->prepare("SELECT $filed FROM $table $order");
+                $stmt = $this->conn->prepare("SELECT $filed FROM $table $order $limit");
                 $stmt->execute();
                 return $stmt->fetchAll();
             }
         } else{
             if($all == NULL) {
 
-                $stmt = $this->conn->prepare("SELECT $filed FROM $table WHERE $where = ? $order");
+                $stmt = $this->conn->prepare("SELECT $filed FROM $table WHERE $where = ? $order $limit");
                 $stmt->execute(array($value));
                 return $stmt->fetch();
 
             }
             elseif($all == "fetchAll") {
 
-                $stmt = $this->conn->prepare("SELECT $filed FROM $table WHERE $where = ? $order");
+                $stmt = $this->conn->prepare("SELECT $filed FROM $table WHERE $where = ? $order $limit");
                 $stmt->execute(array($value));
                 return $stmt->fetchAll();
 
@@ -216,3 +216,155 @@ class User extends Connection
         exit();
     }
 }
+
+
+class Item extends Connection
+{
+    private $item_errors = array();
+
+    public function push_item($item_id, $user_id, $quantity)
+    {
+        $stmt = $this->conn->prepare(" INSERT INTO cart (item_id, user_id, quantity, cart_date)
+                                        VALUES(?,?,?,?)");
+        $stmt->execute(array($item_id, $user_id, $quantity, date("Y-m-d")));
+
+        return $stmt->rowCount();
+    }
+
+
+    public function push_comment($item_id, $user_id, $comment)
+    {
+        $filter_comment = filter_var($comment, FILTER_SANITIZE_SPECIAL_CHARS);
+
+        if (!empty($filter_comment)) {
+
+            $stmt = $this->conn->prepare(" INSERT INTO comments (comment, com_from_user, com_to_item, com_date)
+            VALUES(?,?,?,?)");
+            $stmt->execute(array($filter_comment, $user_id, $item_id, date("Y-m-d")));
+
+            return "<div class='alert alert-success'>Comment Added successfully.</div>";
+
+        } else {
+            return '<div class="alert alert-danger" role="alert"><strong>Sorry!</strong> Comment Shouldn\'t Be Empty</div>';
+        }
+    }
+
+    public function insert_comment($item_id, $description, $price, $country, $status, $category, $photo)
+    {
+        $trim_name = trim($name);
+        $filter_name = filter_var($trim_name, FILTER_SANITIZE_SPECIAL_CHARS);
+
+        if (empty($filter_name)) {
+            $this->item_errors[] = "Item name required";
+        }
+
+        if (strlen($filter_name) < 2 && !empty($filter_name)) {
+            $this->item_errors[] = "Item name must be larger than 2 characters";
+        }
+        if (empty($this->item_errors)) {
+
+            $result = $this->fetch_data("name", "items", "name", $filter_name);
+
+            if (empty($result)) {
+
+                $filter_description = filter_var($description, FILTER_SANITIZE_SPECIAL_CHARS);
+                $filter_price = filter_var($price, FILTER_SANITIZE_SPECIAL_CHARS);
+                $filter_country = filter_var($country, FILTER_SANITIZE_SPECIAL_CHARS);
+
+
+                if (empty($filter_description)) {
+                    $this->item_errors[] = "Item description required";
+                }
+
+                if (strlen($filter_description) < 20 && !empty($filter_description)) {
+                    $this->item_errors[] = "Item description must be larger than 20 characters";
+                }
+
+                if (empty($filter_price)) {
+                    $this->item_errors[] = "Item price required";
+                }
+
+                if ($filter_price <= 0 && !empty($filter_price)) {
+                    $this->item_errors[] = "Item price must be larger than zero dollar";
+                }
+
+                if (empty($filter_country)) {
+                    $this->item_errors[] = "Item country required";
+                }
+
+                if (empty($status)) {
+                    $this->item_errors[] = "Item status required";
+                }
+
+                if (empty($category)) {
+                    $this->item_errors[] = "Item category required";
+                }
+
+                if (empty($photo)) {
+                    $this->item_errors[] = "Item Image required";
+                }
+
+                $types_array = array("jpg", "png", "gif");
+
+                $name_as_array = explode(".", $photo['name']);
+                
+                $type = strtolower(end($name_as_array));
+                
+                if(!in_array($type, $types_array) && !empty($photo['name'])) {
+                    $this->item_errors[] = "Type Photo Not Allow";
+                }
+                
+                if (empty($this->item_errors)) {
+                    $photo_location = $photo['tmp_name'];
+                    
+                    $time    = date("y-m-d H:i:s");
+                    $random  = rand(1,1000);
+                    $time    = str_replace("-","$random",$time);
+                    $random  = rand(1,1000);
+                    $time    = str_replace(" ","$random",$time);
+                    $random  = rand(1,1000);
+                    $time    = str_replace(":", "$random", $time);
+
+                    $photo_upload = "/backend_project/from_github/e-Commerce/admin/uploads/images/" . $time . ".$type";
+                    $photo_upload_to_db = "./uploads/images/" . $time . ".$type";
+
+                    if(move_uploaded_file($photo_location, $_SERVER['DOCUMENT_ROOT'] . $photo_upload)) {
+            
+                        $result = $this->push_item($filter_name, $filter_description, $filter_price, ucfirst($filter_country), $status, ucfirst($category), $photo_upload_to_db);
+                        if ($result > 0) {
+                            $this->item_errors[] = "$filter_name Insert Successfully";
+                            return $this->item_errors;
+                        } else {
+                            $this->item_errors[] = "$filter_name Not Inserted, Please Try Again";
+                            return $this->item_errors;
+                        }
+                
+                    } else {
+                        $this->item_errors[] = "Image Not Uploaded, Please Try Again";
+                        return $this->item_errors;
+                    }
+
+                } else {
+                    return $this->item_errors;
+                    } 
+            } else {
+                $this->item_errors[] = "$filter_name already exist";
+                return $this->item_errors;
+                }
+        } else {
+            return $this->item_errors;
+            }
+    }
+    public function delete_item($item_id, $user_id)
+    {
+            $stmt = $this->conn->prepare("DELETE FROM cart WHERE item_id = ? AND user_id = ?");
+            $stmt->execute(array($item_id, $user_id));
+            if ($stmt->rowCount() > 0) {
+                return "Item Deleted";
+            } else {
+                return "Sorry Please Try Again!";
+            }
+    }
+}
+
+

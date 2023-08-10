@@ -1,7 +1,6 @@
 <?php
+ob_start(); // Output Buffering Start
 session_start();
-  
-
 
 if(isset($_SESSION['admin'])) {
 	$title = "Categories";  
@@ -108,20 +107,6 @@ if(isset($_SESSION['admin'])) {
 					</div>
 				</div>
 				<!-- End Ordering Field -->
-				<!-- Start Category Type -->
-<!-- //============================================================================================= -->
-<!-- //============================================================================================= -->
-
-				<!-- <div class="form-group form-group-lg">
-					<label class="col-sm-2 control-label">Parent?</label>
-					<div class="col-sm-10 col-md-6">
-						<select name="parent">
-							<option value="0">None</option>
-									<option value='vv'>oo</option>
-						</select>
-					</div>
-				</div> -->
-				<!-- End Category Type -->
 				<!-- Start Visibility Field -->
 				<div class="form-group form-group-lg">
 					<label class="col-sm-2 control-label">Visible</label>
@@ -210,9 +195,6 @@ if(isset($_SESSION['admin'])) {
             $cat_id = intval($_GET['cat_id']);
     
             $cat = $category->fetch_data("*", "categories", "id", $cat_id);
-            // echo "<pre>";
-            // print_r($update_item);
-            // echo "</pre>";
             if(!empty($cat)) {
         
         ?>
@@ -244,20 +226,6 @@ if(isset($_SESSION['admin'])) {
 							</div>
 						</div>
 						<!-- End Ordering Field -->
-						<!-- Start Category Type -->
-
-
-
-						<!-- <div class="form-group form-group-lg">
-							<label class="col-sm-2 control-label">Parent?</label>
-							<div class="col-sm-10 col-md-6">
-								<select name="parent">
-									<option value="0">None</option>
-									<option value=''></option>    
-								</select>
-							</div>
-						</div> -->
-						<!-- End Category Type -->
 						<!-- Start Visibility Field -->
 						<div class="form-group form-group-lg">
 							<label class="col-sm-2 control-label">Visible</label>
@@ -334,7 +302,6 @@ if(isset($_SESSION['admin'])) {
                         $cat_id
                     );
                 } 
-                // echo "$update_errors";
             }else{
                 header("location:categories.php?do=Manage");
                 exit();   
@@ -346,8 +313,6 @@ if(isset($_SESSION['admin'])) {
                 }
             }
             
-            // echo " <div class='alert alert-success'>" . $stmt->rowCount() . ' Record Inserted</div>
-            // echo "You Will be redirect to Previous Page After 5 Seconds";
             echo "<div class='alert alert-primary'>You Will be redirect to Previous Page After 5 Seconds</div>";
             header("refresh:3;url=categories.php?do=Manage");
             echo "</div>";	
@@ -367,17 +332,13 @@ if(isset($_SESSION['admin'])) {
             header("refresh:3;url=categories.php?do=Manage");
             echo "</div>";	
         } 
-        // else{
-        //     header("location:categories.php?do=Manage");
-        //     exit();   
-        // }
     } else{
         header("location:categories.php?do=Manage");
         exit();   
     }
 
 	include $tpl . 'footer.php'; 
-
+	ob_end_flush();
 
 } else {
 	header("location: index.php");

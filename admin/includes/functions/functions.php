@@ -229,7 +229,7 @@ class Item extends Connection
 
                     if(move_uploaded_file($photo_location, $_SERVER['DOCUMENT_ROOT'] . $photo_upload)) {
             
-                        $result = $this->push_item($filter_name, $filter_description, $filter_price, $filter_country, $status, $category, $photo_upload_to_db);
+                        $result = $this->push_item($filter_name, $filter_description, $filter_price, ucfirst($filter_country), $status, ucfirst($category), $photo_upload_to_db);
                         if ($result > 0) {
                             $this->item_errors[] = "$filter_name Insert Successfully";
                             return $this->item_errors;

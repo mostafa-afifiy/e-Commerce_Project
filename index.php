@@ -1,10 +1,15 @@
 <?php
+ob_start(); // Output Buffering Start
 session_start();
 include 'init.php';
-$fetch_items = new Connection();
-$items = $fetch_items->fetch_data("*", "items", "approve", "1" , all: "fetchAll");
-// print_r($items);
 
+$fetch_items = new Connection();
+
+if(isset($_GET['cat'])) {
+	$items = $fetch_items->fetch_data("*", "items", "approve = 1 AND category", $_GET['cat'] , all: "fetchAll");
+} else {
+	$items = $fetch_items->fetch_data("*", "items", "approve", "1" , all: "fetchAll");
+}
 ?>
 <div class="container">
 	<div class="row">
@@ -17,7 +22,7 @@ $items = $fetch_items->fetch_data("*", "items", "approve", "1" , all: "fetchAll"
 				<img class="img-responsive" src="<?= $item['image'];?>" alt="avatar" />
 				<div class="caption">
 					<h3><a href="items.php?itemid=<?= $item['item_id'];?>"><?= $item['name'];?></a></h3>
-					<p><?= $item['description'];?></p>
+					<p><?= substr($item['description'], 0, 75);?></p>
 					<div class="date"><?= $item['item_date'];?></div>
 				</div>
 			</div>
@@ -25,4 +30,7 @@ $items = $fetch_items->fetch_data("*", "items", "approve", "1" , all: "fetchAll"
 		<?php }?>
 	</div>
 </div>
-<?= include $tpl . 'footer.php'; ?>
+<?php 
+	include $tpl . 'footer.php'; 
+	ob_end_flush();
+?>

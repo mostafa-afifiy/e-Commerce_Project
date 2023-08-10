@@ -1,4 +1,5 @@
 <?php
+ob_start(); // Output Buffering Start
 session_start();
 
 if(isset($_SESSION['admin'])) {
@@ -166,17 +167,6 @@ if(isset($_SESSION['admin'])) {
                         </div>
                     </div>
                     <!-- End Status Field -->
-                    <!-- <div class="form-group form-group-lg"> -->
-                        <!-- Start Members Field -->
-                        <!-- <label class="col-sm-2 control-label">Member</label>
-                        <div class="col-sm-10 col-md-6">
-                            <select name="member">
-                                <option value="0">...</option>
-                                    <option value='vv'>oo/option>
-                            </select>
-                        </div>
-                        </div> -->
-                        <!-- End Members Field -->
                         <!-- Start Categories Field -->
                         <div class="form-group form-group-lg">
                             <label class="col-sm-2 control-label">Category</label>
@@ -207,19 +197,6 @@ if(isset($_SESSION['admin'])) {
                             </div>
                         </div>
                         <!-- End Tags Field -->
-                        <!-- Start Tags Field -->
-                        <!-- <div class="form-group form-group-lg">
-                            <label class="col-sm-2 control-label">Tags</label>
-                            <div class="col-sm-10 col-md-6">
-                                <input 
-                                    type="text" 
-                                    name="tags" 
-                                    class="form-control" 
-                                    placeholder="Separate Tags With " />
-                            </div>
-                        </div> -->
-                        
-                        <!-- End Tags Field -->
                         <!-- Start Submit Field -->
                         <div class="form-group form-group-lg">
                             <div class="col-sm-offset-2 col-sm-10">
@@ -227,8 +204,6 @@ if(isset($_SESSION['admin'])) {
                                 <a class="add-category btn btn-danger" href="?do=Manage">Back</a>
                             </div>
                         </div>
-                    <!-- </div>
-                    </div> -->
                     <!-- End Submit Field -->
                 </form>
             </div>
@@ -267,13 +242,9 @@ if(isset($_SESSION['admin'])) {
                 $item_id = intval($_GET['item_id']);
         
                 $update_item = $item->fetch_data("*", "items", "item_id", $item_id);
-                // echo "<pre>";
-                // print_r($update_item);
-                // echo "</pre>";
                 if(!empty($update_item)) {
             
         ?>
-        
                     <h1 class="text-center">Edit Item</h1>
                     <div class="container">
                         <form class="form-horizontal" action="?do=Update&item_id=<?= @$item_id;?>" method="POST" enctype="multipart/form-data">
@@ -360,17 +331,6 @@ if(isset($_SESSION['admin'])) {
                                 </div>
                             </div>
                             <!-- End Categories Field -->
-                            <!-- Start Members Field -->
-                            <!-- <div class="form-group form-group-lg">
-                                <label class="col-sm-2 control-label">Member</label>
-                                <div class="col-sm-10 col-md-6">
-                                    <select name="member">
-                                                <option value=''>oo</option>
-                                    </select>
-                                </div>
-                            </div> -->
-                            <!-- End Members Field -->
-                            
                 <!-- Start Image Field -->
                     <div class="form-group form-group-lg">
                         <label class="col-sm-2 control-label">Image</label>
@@ -424,7 +384,6 @@ if(isset($_SESSION['admin'])) {
                             intval($_GET['item_id'])
                         );
                     } 
-                    // echo "$update_errors";
                 }else{
                     header("location:items.php?do=Manage");
                     exit();   
@@ -436,8 +395,6 @@ if(isset($_SESSION['admin'])) {
                     }
                 }
                 
-                // echo " <div class='alert alert-success'>" . $stmt->rowCount() . ' Record Inserted</div>
-                // echo "You Will be redirect to Previous Page After 5 Seconds";
                 echo "<div class='alert alert-primary'>You Will be redirect to Previous Page After 3 Seconds</div>";
                 header("refresh:3;url=items.php?do=Manage");
                 echo "</div>";	
@@ -476,7 +433,7 @@ if(isset($_SESSION['admin'])) {
     }
 
 	include $tpl . 'footer.php'; 
-
+	ob_end_flush();
 
 } else {
 	header("location: index.php");

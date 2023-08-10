@@ -1,9 +1,7 @@
 <?php
+ob_start(); // Output Buffering Start
 session_start();
-
 include 'init.php';
-
-
 
 if(isset($_GET['itemid']) && is_numeric($_GET['itemid'])){
 	$check_item = new Connection();
@@ -11,10 +9,31 @@ if(isset($_GET['itemid']) && is_numeric($_GET['itemid'])){
 	if(!empty($item)){
 
 		if($_SERVER['REQUEST_METHOD'] == 'POST') {
+
 			if(isset($_SESSION['user'])) {
-				$comment_msg = comment_item($_POST['comment'], $item['item_id'], $_SESSION['user_id']);
+				
+				$push = new Item();
+
+				if(isset($_POST['quantity'])) {
+					$push->push_item($item['item_id'], $_SESSION['user_id'], $_POST['number']);
+				}
+				elseif(isset($_POST['comments'])) {
+					$comment_msg = $push->push_comment($item['item_id'], $_SESSION['user_id'], $_POST['comment']);
+				}
+			}
+			else {
+				echo "<script>
+						if (confirm('Please log in to access your cart. Do you want to proceed to the login page?')) {
+							window.location.href = 'login.php'; // Redirect to the login page
+						} else {
+							// User chose to cancel, redirect back to the previous page
+							history.back(); // Redirect to the previous page
+						}
+					</script>";
 			}
 		}
+
+		
 ?>
 		<h1 class="text-center">Item Information</h1>
 		<div class="container">
@@ -35,22 +54,25 @@ if(isset($_GET['itemid']) && is_numeric($_GET['itemid'])){
 							<span>Price</span> : <?= $item['price']; ?>
 						</li>
 						<li>
+						<i class="fa fa-tags fa-fw"></i>
+							<span>Status</span> : <?= $item['item_status']; ?>
+						</li>
+						<li>
 							<i class="fa fa-building fa-fw"></i>
-							<span>Made In</span> : <?= $item['country']; ?>
+							<span>Made In</span> : <?= ucfirst($item['country']); ?>
 						</li>
 						<li>
 							<i class="fa fa-tags fa-fw"></i>
-							<span>Category</span> : <a href="categories.php?cat_id=<?= $item['item_id']; ?>"><?= $item['category']; ?></a>
+							<span>Category</span> : <?= $item['category']; ?>
 						</li>
-						<!-- <li>
-							<i class="fa fa-user fa-fw"></i>
-							<span>Added By</span> : <a href="#"></a>
-						</li> -->
-						<!-- <li class="tags-items">
-							<i class="fa fa-user fa-fw"></i>
-							<span>Tags</span> : 
-										<a href='tags.php?name={$lowertag}'></a>
-						</li> -->
+						<li>
+							<form action="<?= $_SERVER['PHP_SELF'];?>?itemid=<?= $item['item_id'];?>" method="POST">
+							<span>Quantity</span> : <input type="number" name="number" min="1" max="100" value="<?= isset($_POST['quantity']) ? $_POST['number'] : 1;?>">
+						</li>
+						<li>
+							<input class="btn btn-primary btn-block" name="quantity" type="submit" value="Add To Cart" />
+						</form>
+					</li>
 					</ul>
 				</div>
 			</div>
@@ -60,15 +82,13 @@ if(isset($_GET['itemid']) && is_numeric($_GET['itemid'])){
 				<div class="col-md-offset-3">
 					<div class="add-comment">
 						<h3>Add Your Comment</h3>
-						<form action="<?= $_SERVER['PHP_SELF'];?>" method="POST">
+						<form action="?itemid=<?= $item['item_id'];?>" method="POST">
 							<textarea name="comment" ></textarea>
-							<input class="btn btn-primary" type="submit" value="Add Comment">
+							<input class="btn btn-primary" name="comments" type="submit" value="Add Comment">
 						</form>
 						<?php 
 							if(isset($comment_msg)) {
-								foreach($comment_msg as $msg) {
-									echo $msg;
-								}
+									echo $comment_msg;
 							}
 						?>
 					</div>
@@ -77,21 +97,37 @@ if(isset($_GET['itemid']) && is_numeric($_GET['itemid'])){
 			<!-- End Add Comment -->
 			<?php
 				if(!isset($_SESSION['user'])) {
-					echo '<a href="login.php">Login</a> or <a href="login.php">Register</a> To Add Comment';
+					echo '<a href="login.php">Login</a> or <a href="register.php">Register</a> To Add Comment';
 				}
 			?>
-			<!-- <hr class="custom-hr">
-				<div class="comment-box">
-					<div class="row">
-						<div class="col-sm-2 text-center">
-							<img class="img-responsive img-thumbnail img-circle center-block" src="img.png" alt="" />
-						</div>
-						<div class="col-sm-10">
-							<p class="lead"></p>
-						</div>
-					</div>
-				</div>
-				<hr class="custom-hr"> -->
+				<?php
+					$connect = new Connection();
+					$stmt = $connect->conn->prepare("SELECT u.full_name, u.image, c.comment
+														FROM users u LEFT JOIN comments c
+														ON u.user_id = c.com_from_user
+														WHERE c.com_to_item = ?
+														");
+					$stmt->execute(array($_GET['itemid']));
+					$comments = $stmt->fetchAll();
+					
+					if(isset($comments)) {
+						echo '<hr class="custom-hr">';
+						foreach($comments as $comment) {
+							?>
+							<div class="comment-box">
+								<div class="row">
+									<div class="col-sm-2 text-center">
+										<img class="img-responsive img-thumbnail img-circle center-block" src="./uploads/img.png" alt="" />
+									</div>
+									<div class="col-sm-10">
+										<p class="lead"><?= $comment['comment'] ?></p>
+									</div>
+								</div>
+							</div>
+							<?php
+							}
+							echo '<hr class="custom-hr">';
+							}?>
 		</div>
 		<?php 
 			} else { ?>
@@ -104,4 +140,7 @@ if(isset($_GET['itemid']) && is_numeric($_GET['itemid'])){
 					</div>  
 					<?php }?>
 	<?php }?>
-		<?php include $tpl . 'footer.php'; ?>
+<?php 
+	include $tpl . 'footer.php'; 
+	ob_end_flush();
+?>

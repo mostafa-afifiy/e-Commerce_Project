@@ -1,4 +1,5 @@
 <?php
+ob_start(); // Output Buffering Start
 session_start();
 $title = "Signup";
 include 'init.php';
@@ -40,7 +41,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
 				autocomplete="off"
 				placeholder="Type your username"
                 value = "<?= @$_POST['username'];?>" 
-				 />
+				/>
 		</div>
 		<div class="input-container">
 			<input 
@@ -84,4 +85,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
 		?>
 	</div>
 </div>
-<?php include $tpl . 'footer.php'; ?>
+<?php 
+	include $tpl . 'footer.php'; 
+	ob_end_flush();
+?>
