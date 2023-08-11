@@ -6,15 +6,24 @@ include 'init.php';
 $fetch_items = new Connection();
 
 if(isset($_GET['cat'])) {
-	$items = $fetch_items->fetch_data("*", "items", "approve = 1 AND category", $_GET['cat'] , all: "fetchAll");
+	$cat = $fetch_items->fetch_data("name", "categories", "name", $_GET['cat']);
+
+	if(!empty($cat)) {
+		$items = $fetch_items->fetch_data("*", "items", "approve = 1 AND category", $_GET['cat'] , all: "fetchAll");
+	} else {
+		$items = $fetch_items->fetch_data("*", "items", "approve", "1" , all: "fetchAll");
+	}
 } else {
 	$items = $fetch_items->fetch_data("*", "items", "approve", "1" , all: "fetchAll");
 }
 ?>
 <div class="container">
-	<div class="row">
+	
+	
 	<?php 
+	$i = 0;
 	foreach($items as $item) {
+		if($i == 0 ) echo '<div class="row">';
 	?>
 		<div class="col-sm-6 col-md-3">
 			<div class="thumbnail item-box">
@@ -27,8 +36,16 @@ if(isset($_GET['cat'])) {
 				</div>
 			</div>
 		</div>
-		<?php }?>
-	</div>
+		<?php
+			$i++;
+		if($i == 4 ) {
+			echo '</div>';
+			echo '<hr class="custom-hr">';
+			$i = 0;
+		}
+			}?>
+	
+	
 </div>
 <?php 
 	include $tpl . 'footer.php'; 

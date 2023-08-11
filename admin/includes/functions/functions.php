@@ -341,7 +341,7 @@ class Item extends Connection
 
                 if (empty($this->item_errors)) {
 
-                    $types_array = array("jpg", "png", "gif");
+                    $types_array = array("jpg", "png", "gif", "webp", "jpeg");
 
                     $name_as_array = explode(".", $photo['name']);
                     
@@ -362,7 +362,7 @@ class Item extends Connection
                         $random  = rand(1,1000);
                         $time    = str_replace(":", "$random", $time);
 
-                        $photo_upload = "/backend_project/from_github/e-Commerce/admin/uploads/images/" . $time . ".$type";
+                        $photo_upload = "/backend_project/from_github/e-Commerce/uploads/images/" . $time . ".$type";
                         $photo_upload_to_db = "./uploads/images/" . $time . ".$type";
 
                         if(move_uploaded_file($photo_location, $_SERVER['DOCUMENT_ROOT'] . $photo_upload)) {
